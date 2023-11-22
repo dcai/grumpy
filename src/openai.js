@@ -1,5 +1,6 @@
 const OpenAI = require('openai');
 const R = require('ramda');
+const DEFAULT_MODEL = 'gpt-3.5-turbo';
 
 let openaiSingleton = null;
 
@@ -13,34 +14,38 @@ function getOpenaiClient() {
   return openaiSingleton;
 }
 
+function useModel() {
+  return process.env.OPEN_API_MODEL || DEFAULT_MODEL;
+}
+
 async function getChatCompletion(question) {
   return await getOpenaiClient().chat.completions.create({
     messages: [{ role: 'user', content: question }],
-    model: 'gpt-3.5-turbo',
+    model: useModel(),
   });
 }
 
-async function getChatCompletionStream(question) {
+async function getChatCompletionStream(conversation, prompt) {
   const messages = [
     {
       role: 'system',
-      content: 'You are an assistant, you do what I ask but grumpy',
+      content: prompt || 'You are an assistant, you do what I ask but grumpy',
     },
   ];
-  if (Array.isArray(question)) {
-    question.forEach((q) => {
+  if (Array.isArray(conversation)) {
+    conversation.forEach((q) => {
       messages.push({
         role: 'user',
         content: q,
       });
     });
   } else {
-    messages.push({ role: 'user', content: question });
+    messages.push({ role: 'user', content: conversation });
   }
   return await getOpenaiClient().chat.completions.create({
     stream: true,
     messages,
-    model: process.env.OPEN_API_MODEL || 'gpt-3.5-turbo',
+    model: useModel(),
   });
 }
 

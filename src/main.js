@@ -31,20 +31,31 @@ program.command('frompipe').action(async () => {
   }
 });
 
-async function askQuestion(askMore) {
+async function askQuestion(options) {
   const {
     input: question,
     history,
     rl,
   } = await readFromUserInput(chalk.blue('•`_´• What do you want from me? '));
+
+  const prompt = R.propOr(null, 'prompt')(options);
   if (shouldExit(question)) {
     process.exit(0);
+  } else if (question === 'debug') {
+    rl.history.shift();
+    echo(`\nPrompt: ${prompt}\n`);
+    echo(`\n${JSON.stringify(rl.history, null, 2)}\n`);
   } else if (question === 'clear') {
     rl.history = [];
     echo('\n::: Question history cleared :::\n');
   } else {
     try {
-      const stream = await getChatCompletionStream([...R.reverse(history)]);
+      const numberOfContextMessages = 5;
+      const input = R.pipe(
+        R.slice(0, numberOfContextMessages - 1),
+        R.reverse,
+      )(history);
+      const stream = await getChatCompletionStream(input, prompt);
       for await (const chunk of stream) {
         echo(chunk.choices[0]?.delta?.content || '');
       }
@@ -53,13 +64,19 @@ async function askQuestion(askMore) {
     }
     newline();
   }
-  if (askMore) {
-    askQuestion(true);
+  if (options.askMore) {
+    askQuestion(options);
   }
 }
 
-program.command('ask').action(async () => {
-  await askQuestion(true);
-});
+program
+  .command('ask')
+  .option('-p --prompt <string>', 'prompt for openai')
+  .action(async (options) => {
+    await askQuestion({
+      ...options,
+      askMore: true,
+    });
+  });
 
 program.parse();
