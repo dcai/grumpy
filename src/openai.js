@@ -1,5 +1,7 @@
 const OpenAI = require('openai');
 const R = require('ramda');
+const debug = require('debug')('openai.js');
+
 const DEFAULT_MODEL = 'gpt-3.5-turbo';
 
 let openaiSingleton = null;
@@ -14,18 +16,11 @@ function getOpenaiClient() {
   return openaiSingleton;
 }
 
-function useModel() {
-  return process.env.OPEN_API_MODEL || DEFAULT_MODEL;
+function useModel(model = null) {
+  return model || process.env.OPEN_API_MODEL || DEFAULT_MODEL;
 }
 
-async function getChatCompletion(question) {
-  return await getOpenaiClient().chat.completions.create({
-    messages: [{ role: 'user', content: question }],
-    model: useModel(),
-  });
-}
-
-async function getChatCompletionStream(conversation, prompt) {
+function generateMessages(conversation, prompt) {
   const messages = [
     {
       role: 'system',
@@ -42,15 +37,23 @@ async function getChatCompletionStream(conversation, prompt) {
   } else {
     messages.push({ role: 'user', content: conversation });
   }
-  return await getOpenaiClient().chat.completions.create({
-    stream: true,
-    messages,
-    model: useModel(),
-  });
+  return messages;
 }
 
+const chatCompletionFactory =
+  (options = { stream: false }) =>
+  async (conversation, prompt) => {
+    const messages = generateMessages(conversation, prompt);
+    debug(messages);
+    return await getOpenaiClient().chat.completions.create({
+      stream: options.stream || false,
+      messages,
+      model: useModel(),
+    });
+  };
+
 async function getAnswer(q) {
-  const result = await getChatCompletion(q);
+  const result = await chatCompletionFactory({ stream: false })(q);
 
   const answer = R.reduce(
     (acc, choice) => {
@@ -62,4 +65,4 @@ async function getAnswer(q) {
   return answer;
 }
 
-module.exports = { getChatCompletion, getChatCompletionStream, getAnswer };
+module.exports = { getOpenaiClient, chatCompletionFactory, getAnswer };

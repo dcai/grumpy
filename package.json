@@ -23,6 +23,7 @@
   "dependencies": {
     "chalk": "^4.1.2",
     "commander": "^11.1.0",
+    "debug": "^4.3.4",
     "openai": "^4.19.1",
     "ramda": "^0.29.1"
   },

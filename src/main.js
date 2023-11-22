@@ -4,7 +4,11 @@ const packageJson = require('../package.json');
 const chalk = require('chalk');
 const R = require('ramda');
 const { Command } = require('commander');
-const { getAnswer, getChatCompletionStream } = require('./openai');
+const {
+  getAnswer,
+  chatCompletionFactory,
+  getOpenaiClient,
+} = require('./openai');
 const {
   newline,
   shouldExit,
@@ -21,6 +25,20 @@ program
   .description(packageJson.description)
   .version(packageJson.version);
 
+program.command('models').action(async () => {
+  const models = await getOpenaiClient().models.list();
+  const data = models.data;
+
+  const list = R.reduce(
+    (acc, item) => {
+      return [...acc, `${item.id} by ${item.owned_by}`];
+    },
+    [],
+    data,
+  );
+  process.stdout.write(JSON.stringify(list, null, 2));
+});
+
 program.command('frompipe').action(async () => {
   const text = await readFromPipe();
   if (text) {
@@ -31,14 +49,14 @@ program.command('frompipe').action(async () => {
   }
 });
 
-async function askQuestion(options) {
+async function askQuestion(options = {}) {
   const {
     input: question,
     history,
     rl,
   } = await readFromUserInput(chalk.blue('•`_´• What do you want from me? '));
+  const { prompt = null, askMore = false } = options;
 
-  const prompt = R.propOr(null, 'prompt')(options);
   if (shouldExit(question)) {
     process.exit(0);
   } else if (question === 'debug') {
@@ -55,7 +73,10 @@ async function askQuestion(options) {
         R.slice(0, numberOfContextMessages - 1),
         R.reverse,
       )(history);
-      const stream = await getChatCompletionStream(input, prompt);
+      const stream = await chatCompletionFactory({ stream: true })(
+        input,
+        prompt,
+      );
       for await (const chunk of stream) {
         echo(chunk.choices[0]?.delta?.content || '');
       }
@@ -64,7 +85,7 @@ async function askQuestion(options) {
     }
     newline();
   }
-  if (options.askMore) {
+  if (askMore) {
     askQuestion(options);
   }
 }
@@ -72,11 +93,11 @@ async function askQuestion(options) {
 program
   .command('ask')
   .option('-p --prompt <string>', 'prompt for openai')
-  .action(async (options) => {
-    await askQuestion({
+  .action((options) =>
+    askQuestion({
       ...options,
       askMore: true,
-    });
-  });
+    }),
+  );
 
 program.parse();
