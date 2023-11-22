@@ -41,10 +41,10 @@ async function askQuestion(askMore) {
     process.exit(0);
   } else if (question === 'clear') {
     rl.history = [];
-    echo('\n::: Question history cleared\n');
+    echo('\n::: Question history cleared :::\n');
   } else {
     try {
-      const stream = await getChatCompletionStream(R.reverse(history));
+      const stream = await getChatCompletionStream([...R.reverse(history)]);
       for await (const chunk of stream) {
         echo(chunk.choices[0]?.delta?.content || '');
       }

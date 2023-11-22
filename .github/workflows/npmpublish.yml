@@ -1,4 +1,4 @@
-name: npm publish
+name: npm test and publish
 
 on:
   push:
@@ -12,19 +12,18 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: test
-        run: |
-          npm ci
-          npm test
-
-  npm-publish:
+  # test:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 20
+  #     - name: test
+  #       run: |
+  #         npm ci
+  #         npm test
+  main:
     permissions:
       contents: write
     needs: test
@@ -35,6 +34,10 @@ jobs:
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org/
+      - name: test
+        run: |
+          npm ci
+          npm test
       - name: "npm package version bump"
         uses: "phips28/gh-action-bump-version@master"
         with:
