@@ -8,6 +8,11 @@ on:
     branches:
       - master
       - main
+    paths:
+      - "src/*"
+      - "package*"
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   # test:
