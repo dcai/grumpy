@@ -1,7 +1,7 @@
 {
   "name": "grumpy-ai",
   "version": "0.0.5",
-  "description": "openai client cli",
+  "description": "Openai client for cli",
   "main": "src/main.js",
   "bin": {
     "ai": "src/main.js"

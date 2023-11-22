@@ -16,7 +16,10 @@ const {
 
 const program = new Command();
 
-program.name('ai').description('OpenAI Client').version(packageJson.version);
+program
+  .name('ai')
+  .description(packageJson.description)
+  .version(packageJson.version);
 
 program.command('frompipe').action(async () => {
   const text = await readFromPipe();
