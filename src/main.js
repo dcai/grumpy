@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+const packageJson = require('../package.json');
 const chalk = require('chalk');
 const R = require('ramda');
 const { Command } = require('commander');
@@ -9,12 +10,13 @@ const {
   shouldExit,
   readFromUserInput,
   echo,
+  error,
   readFromPipe,
 } = require('./helpers');
 
 const program = new Command();
 
-program.name('openai-chat').description('OpenAI Chat').version('0.0.1');
+program.name('ai').description('OpenAI Client').version(packageJson.version);
 
 program.command('frompipe').action(async () => {
   const text = await readFromPipe();
@@ -44,7 +46,7 @@ async function askQuestion(askMore) {
         echo(chunk.choices[0]?.delta?.content || '');
       }
     } catch (ex) {
-      echo('error: ', ex.toString());
+      error('error: ', ex.toString());
     }
     newline();
   }
