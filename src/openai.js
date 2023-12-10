@@ -28,15 +28,13 @@ function generateMessages(conversation, prompt) {
     },
   ];
   if (Array.isArray(conversation)) {
-    conversation.forEach((q) => {
-      messages.push({
-        role: 'user',
-        content: q,
-      });
-    });
+    messages.push(...conversation);
   } else {
     messages.push({ role: 'user', content: conversation });
   }
+  debug('!!!!');
+  debug(messages);
+  debug('!!!!');
   return messages;
 }
 

@@ -49,6 +49,14 @@ program.command('frompipe').action(async () => {
   }
 });
 
+function isCmd(cmd) {
+  return function (input) {
+    return input == cmd;
+  };
+}
+
+let conversation = [];
+
 async function askQuestion(options = {}) {
   const {
     input: question,
@@ -59,27 +67,33 @@ async function askQuestion(options = {}) {
 
   if (shouldExit(question)) {
     process.exit(0);
-  } else if (question === 'debug') {
+  } else if (isCmd('debug')(question)) {
     rl.history.shift();
     echo(`\nPrompt: ${prompt}\n`);
-    echo(`\n${JSON.stringify(rl.history, null, 2)}\n`);
-  } else if (question === 'clear') {
-    rl.history = [];
+    echo(`\n${JSON.stringify(conversation, null, 2)}\n`);
+  } else if (isCmd('clear')(question)) {
+    // rl.history = [];
+    conversation = [];
     echo('\n::: Question history cleared :::\n');
   } else {
     try {
-      const numberOfContextMessages = 5;
-      const input = R.pipe(
-        R.slice(0, numberOfContextMessages - 1),
-        R.reverse,
-      )(history);
+      // const numberOfContextMessages = 5;
+      // const input = R.pipe(
+      //   R.slice(0, numberOfContextMessages - 1),
+      //   R.reverse,
+      // )(history);
+      conversation.push({ role: 'user', content: question });
       const stream = await chatCompletionFactory({ stream: true })(
-        input,
+        conversation,
         prompt,
       );
+      let response = '';
       for await (const chunk of stream) {
-        echo(chunk.choices[0]?.delta?.content || '');
+        const msg = chunk.choices[0]?.delta?.content || '';
+        response += msg;
+        echo(msg);
       }
+      conversation.push({ role: 'assistant', content: response });
     } catch (ex) {
       error('error: ', ex.toString());
     }
