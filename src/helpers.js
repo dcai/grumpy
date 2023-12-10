@@ -2,6 +2,24 @@ const chalk = require('chalk');
 const readline = require('readline');
 const R = require('ramda');
 
+let conversation = [];
+
+function getConversation() {
+  return conversation;
+}
+
+function clearConversation() {
+  conversation = [];
+}
+
+function conversationAddUser(content) {
+  getConversation().push({ role: 'user', content });
+}
+
+function conversationAddAssistant(content) {
+  getConversation().push({ role: 'assistant', content });
+}
+
 function readFromPipe() {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -72,4 +90,8 @@ module.exports = {
   shouldExit,
   echo,
   readFromUserInput,
+  getConversation,
+  conversationAddUser,
+  conversationAddAssistant,
+  clearConversation,
 };

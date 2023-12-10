@@ -16,6 +16,10 @@ const {
   echo,
   error,
   readFromPipe,
+  clearConversation,
+  conversationAddUser,
+  conversationAddAssistant,
+  getConversation,
 } = require('./helpers');
 
 const program = new Command();
@@ -55,14 +59,10 @@ function isCmd(cmd) {
   };
 }
 
-let conversation = [];
-
 async function askQuestion(options = {}) {
-  const {
-    input: question,
-    history,
-    rl,
-  } = await readFromUserInput(chalk.blue('•`_´• What do you want from me? '));
+  const { input: question, rl } = await readFromUserInput(
+    chalk.blue('•`_´• What do you want from me? '),
+  );
   const { prompt = null, askMore = false } = options;
 
   if (shouldExit(question)) {
@@ -70,21 +70,15 @@ async function askQuestion(options = {}) {
   } else if (isCmd('debug')(question)) {
     rl.history.shift();
     echo(`\nPrompt: ${prompt}\n`);
-    echo(`\n${JSON.stringify(conversation, null, 2)}\n`);
+    echo(`\n${JSON.stringify(getConversation(), null, 2)}\n`);
   } else if (isCmd('clear')(question)) {
-    // rl.history = [];
-    conversation = [];
+    clearConversation();
     echo('\n::: Question history cleared :::\n');
   } else {
     try {
-      // const numberOfContextMessages = 5;
-      // const input = R.pipe(
-      //   R.slice(0, numberOfContextMessages - 1),
-      //   R.reverse,
-      // )(history);
-      conversation.push({ role: 'user', content: question });
+      conversationAddUser(question);
       const stream = await chatCompletionFactory({ stream: true })(
-        conversation,
+        getConversation(),
         prompt,
       );
       let response = '';
@@ -93,7 +87,7 @@ async function askQuestion(options = {}) {
         response += msg;
         echo(msg);
       }
-      conversation.push({ role: 'assistant', content: response });
+      conversationAddAssistant(response);
     } catch (ex) {
       error('error: ', ex.toString());
     }

@@ -24,7 +24,9 @@ function generateMessages(conversation, prompt) {
   const messages = [
     {
       role: 'system',
-      content: prompt || 'You are an assistant, you do what I ask but grumpy',
+      content:
+        prompt ||
+        `You are ChatGPT, a large language model trained by OpenAI. Follow the user's instructions carefully, your response is in markdown format.`,
     },
   ];
   if (Array.isArray(conversation)) {
@@ -32,9 +34,7 @@ function generateMessages(conversation, prompt) {
   } else {
     messages.push({ role: 'user', content: conversation });
   }
-  debug('!!!!');
   debug(messages);
-  debug('!!!!');
   return messages;
 }
 
