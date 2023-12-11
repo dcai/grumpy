@@ -1,4 +1,5 @@
 const colors = require('@colors/colors/safe');
+const Table = require('cli-table3');
 const readline = require('readline');
 const R = require('ramda');
 const { chatCompletionFactory } = require('./openai');
@@ -128,7 +129,15 @@ async function askQuestion(options = {}) {
   }
 }
 
+function makeTable(options = {}) {
+  return new Table({
+    chars: { 'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': '' },
+    ...options,
+  });
+}
+
 module.exports = {
+  makeTable,
   clearConversation,
   conversationAddAssistant,
   conversationAddUser,
