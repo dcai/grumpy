@@ -14,4 +14,13 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'app.js',
   },
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        include: path.resolve(__dirname, 'src'),
+        loader: 'babel-loader',
+      },
+    ],
+  },
 };
