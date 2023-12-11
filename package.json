@@ -21,7 +21,8 @@
   "author": "Dongsheng Cai <d@tux.im> (https://tux.im/)",
   "license": "Apache-2.0",
   "dependencies": {
-    "chalk": "^4.1.2",
+    "@colors/colors": "^1.6.0",
+    "cli-table3": "^0.6.3",
     "commander": "^11.1.0",
     "debug": "^4.3.4",
     "openai": "^4.19.1",

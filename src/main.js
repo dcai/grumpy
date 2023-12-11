@@ -6,6 +6,7 @@ const R = require('ramda');
 const { Command } = require('commander');
 const { getAnswer, getOpenaiClient } = require('./openai');
 const { echo, readFromPipe, askQuestion, error } = require('./helpers');
+const Table = require('cli-table3');
 
 const program = new Command();
 
@@ -17,15 +18,14 @@ program
 program.command('models').action(async () => {
   const models = await getOpenaiClient().models.list();
   const data = models.data;
+  const table = new Table({
+    head: ['Model', 'Owned by'],
+  });
 
-  const list = R.reduce(
-    (acc, item) => {
-      return [...acc, `${item.id} by ${item.owned_by}`];
-    },
-    [],
-    data,
-  );
-  process.stdout.write(JSON.stringify(list, null, 2));
+  data.forEach(({ id, owned_by }) => {
+    table.push([id, owned_by]);
+  });
+  echo(table.toString());
 });
 
 program.command('as').action(async (_, cmd) => {
@@ -33,9 +33,13 @@ program.command('as').action(async (_, cmd) => {
   const library = config.getPrompts();
   if (R.length(args) === 0) {
     const actors = Object.entries(library) || [];
-    actors.forEach(([key, value]) => {
-      echo(` - ${key}\t${value?.description || ''}\n`);
+    const table = new Table({
+      head: ['As', 'Description'],
     });
+    actors.forEach(([key, value]) => {
+      table.push([key, value.description]);
+    });
+    echo(table.toString());
     return;
   }
   const prompt = library?.[args[0]]?.prompt || '';

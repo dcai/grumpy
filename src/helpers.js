@@ -1,4 +1,4 @@
-const chalk = require('chalk');
+const colors = require('@colors/colors/safe');
 const readline = require('readline');
 const R = require('ramda');
 const { chatCompletionFactory } = require('./openai');
@@ -81,7 +81,7 @@ const newline = () => echo('\n');
 
 function error(...args) {
   const text = R.join('')(args);
-  process.stderr.write(chalk.red(text));
+  process.stderr.write(colors.red(text));
 }
 
 const shouldExit = (str) => R.includes(R.toLower(str))(['q', 'quit', 'exit']);
@@ -91,8 +91,8 @@ const isCmd = (cmd) => (input) => input == cmd;
 async function askQuestion(options = {}) {
   const { prompt = null, askMore = false } = options;
   const { input: question, rl } = await readFromUserInput(
-    // chalk.blue('•`_´• What do you want from me? '),
-    chalk.blue(`${prompt || '•`_´• What do you want from me?'}\n> `),
+    // colors.blue('•`_´• What do you want from me? '),
+    colors.blue(`${prompt || '•`_´• What do you want from me?'}\n> `),
   );
 
   if (shouldExit(question)) {
