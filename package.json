@@ -1,6 +1,6 @@
 {
   "name": "grumpy-ai",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Openai client for cli",
   "main": "dist/app.js",
   "bin": {
