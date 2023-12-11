@@ -30,13 +30,13 @@ function generateMessages(conversation, prompt) {
 }
 
 const chatCompletionFactory =
-  (options = { stream: false }) =>
+  (options = { stream: false, model: null }) =>
   async (conversation, prompt) => {
     const messages = generateMessages(conversation, prompt);
     const request = {
       stream: options.stream || false,
       messages,
-      model: config.getModel(),
+      model: config.getModel(options.model),
     };
     debug(request);
     return await getOpenaiClient().chat.completions.create(request);

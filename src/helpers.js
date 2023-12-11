@@ -90,7 +90,7 @@ const shouldExit = (str) => R.includes(R.toLower(str))(['q', 'quit', 'exit']);
 const isCmd = (cmd) => (input) => input == cmd;
 
 async function askQuestion(options = {}) {
-  const { prompt = null, askMore = false } = options;
+  const { prompt = null, askMore = false, model = null } = options;
   const { input: question, rl } = await readFromUserInput(
     // colors.blue('•`_´• What do you want from me? '),
     colors.blue(`${prompt || '•`_´• What do you want from me?'}\n> `),
@@ -108,7 +108,7 @@ async function askQuestion(options = {}) {
   } else {
     try {
       conversationAddUser(question);
-      const stream = await chatCompletionFactory({ stream: true })(
+      const stream = await chatCompletionFactory({ stream: true, model })(
         getConversation(),
         prompt,
       );

@@ -35,29 +35,33 @@ program.command('models').action(async () => {
   echo(table.toString());
 });
 
-program.command('as').action(async (_, cmd) => {
-  const { args } = cmd;
-  const library = config.getPrompts();
-  if (R.length(args) === 0) {
-    const actors = Object.entries(library) || [];
-    const table = makeTable({
-      head: ['As', 'Description'],
+program
+  .command('as')
+  .option('-m --model <string>', 'gpt model to use')
+  .action(async (options, cmd) => {
+    const { args } = cmd;
+    const library = config.getPrompts();
+    if (R.length(args) === 0) {
+      const actors = Object.entries(library) || [];
+      const table = makeTable({
+        head: ['As', 'Description'],
+      });
+      actors.forEach(([key, value]) => table.push([key, value.description]));
+      echo(table.toString());
+      return;
+    }
+    const prompt = library?.[args[0]]?.prompt || '';
+    if (!prompt) {
+      error(`Prompt not found\n`);
+      process.exit(1);
+      return;
+    }
+    await askQuestion({
+      model: options.model,
+      prompt,
+      askMore: true,
     });
-    actors.forEach(([key, value]) => table.push([key, value.description]));
-    echo(table.toString());
-    return;
-  }
-  const prompt = library?.[args[0]]?.prompt || '';
-  if (!prompt) {
-    error(`Prompt not found\n`);
-    process.exit(1);
-    return;
-  }
-  await askQuestion({
-    prompt,
-    askMore: true,
   });
-});
 
 program.command('frompipe').action(async () => {
   const text = await readFromPipe();

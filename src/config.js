@@ -57,8 +57,13 @@ class Config {
     }
   }
 
-  getModel() {
-    return this.get().model || process.env.OPEN_API_MODEL || DEFAULT_MODEL;
+  getModel(requestedModel = null) {
+    return (
+      requestedModel ||
+      this.get().model ||
+      process.env.OPEN_API_MODEL ||
+      DEFAULT_MODEL
+    );
   }
 
   getOpenaiApiKey() {
