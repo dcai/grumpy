@@ -26,7 +26,6 @@ function generateMessages(conversation, prompt) {
   } else {
     messages.push({ role: 'user', content: conversation });
   }
-  debug(messages);
   return messages;
 }
 
@@ -34,12 +33,13 @@ const chatCompletionFactory =
   (options = { stream: false }) =>
   async (conversation, prompt) => {
     const messages = generateMessages(conversation, prompt);
-    debug(messages);
-    return await getOpenaiClient().chat.completions.create({
+    const request = {
       stream: options.stream || false,
       messages,
       model: config.getModel(),
-    });
+    };
+    debug(request);
+    return await getOpenaiClient().chat.completions.create(request);
   };
 
 async function getAnswer(q) {
