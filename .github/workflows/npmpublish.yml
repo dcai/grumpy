@@ -26,6 +26,7 @@ jobs:
         run: |
           npm ci
           npm test
+          npm run build
       - name: "npm package version bump"
         uses: "phips28/gh-action-bump-version@master"
         with:
