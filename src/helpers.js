@@ -1,11 +1,14 @@
 const chalk = require('chalk');
 const readline = require('readline');
 const R = require('ramda');
+const { chatCompletionFactory } = require('./openai');
+const config = require('./config');
 
 let conversation = [];
 
 function getConversation() {
-  return conversation;
+  const history = R.takeLast(config.getConversationContext(), conversation);
+  return history;
 }
 
 function clearConversation() {
@@ -13,11 +16,11 @@ function clearConversation() {
 }
 
 function conversationAddUser(content) {
-  getConversation().push({ role: 'user', content });
+  conversation.push({ role: 'user', content });
 }
 
 function conversationAddAssistant(content) {
-  getConversation().push({ role: 'assistant', content });
+  conversation.push({ role: 'assistant', content });
 }
 
 function readFromPipe() {
@@ -83,15 +86,58 @@ function error(...args) {
 
 const shouldExit = (str) => R.includes(R.toLower(str))(['q', 'quit', 'exit']);
 
+const isCmd = (cmd) => (input) => input == cmd;
+
+async function askQuestion(options = {}) {
+  const { prompt = null, askMore = false } = options;
+  const { input: question, rl } = await readFromUserInput(
+    // chalk.blue('•`_´• What do you want from me? '),
+    chalk.blue(`${prompt || '•`_´• What do you want from me?'}\n> `),
+  );
+
+  if (shouldExit(question)) {
+    process.exit(0);
+  } else if (isCmd('debug')(question)) {
+    rl.history.shift();
+    echo(`\nPrompt: ${prompt}\n`);
+    echo(`\n${JSON.stringify(getConversation(), null, 2)}\n`);
+  } else if (isCmd('clear')(question)) {
+    clearConversation();
+    echo('\n::: Question history cleared :::\n');
+  } else {
+    try {
+      conversationAddUser(question);
+      const stream = await chatCompletionFactory({ stream: true })(
+        getConversation(),
+        prompt,
+      );
+      let response = '';
+      for await (const chunk of stream) {
+        const msg = chunk.choices[0]?.delta?.content || '';
+        response += msg;
+        echo(msg);
+      }
+      conversationAddAssistant(response);
+    } catch (ex) {
+      error('error: ', ex.toString());
+    }
+    newline();
+  }
+  if (askMore) {
+    await askQuestion(options);
+  }
+}
+
 module.exports = {
-  error,
-  readFromPipe,
-  newline,
-  shouldExit,
-  echo,
-  readFromUserInput,
-  getConversation,
-  conversationAddUser,
-  conversationAddAssistant,
   clearConversation,
+  conversationAddAssistant,
+  conversationAddUser,
+  echo,
+  error,
+  getConversation,
+  newline,
+  readFromPipe,
+  readFromUserInput,
+  askQuestion,
+  shouldExit,
 };

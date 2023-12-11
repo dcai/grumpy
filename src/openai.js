@@ -1,32 +1,24 @@
 const OpenAI = require('openai');
 const R = require('ramda');
 const debug = require('debug')('openai.js');
-
-const DEFAULT_MODEL = 'gpt-3.5-turbo';
+const config = require('./config');
 
 let openaiSingleton = null;
 
 function getOpenaiClient() {
   if (openaiSingleton === null) {
-    const apiKey = '';
     openaiSingleton = new OpenAI({
-      apiKey: process.env['OPENAI_API_KEY'] || apiKey,
+      apiKey: config.getOpenaiApiKey(),
     });
   }
   return openaiSingleton;
-}
-
-function useModel(model = null) {
-  return model || process.env.OPEN_API_MODEL || DEFAULT_MODEL;
 }
 
 function generateMessages(conversation, prompt) {
   const messages = [
     {
       role: 'system',
-      content:
-        prompt ||
-        `You are ChatGPT, a large language model trained by OpenAI. Follow the user's instructions carefully, your response is in markdown format.`,
+      content: prompt || config.getDefaultPrompt(),
     },
   ];
   if (Array.isArray(conversation)) {
@@ -46,7 +38,7 @@ const chatCompletionFactory =
     return await getOpenaiClient().chat.completions.create({
       stream: options.stream || false,
       messages,
-      model: useModel(),
+      model: config.getModel(),
     });
   };
 
